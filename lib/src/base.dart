@@ -122,6 +122,67 @@ extension SupabaseExtensions on SupabaseClient{
 
   }
 
+  Future<List<Map<String, dynamic>>> _sqlToDartOld(String sql) async {
+    print("SQL = $sql");
+    sql = sql.replaceAll('where', 'WHERE');
+    sql = sql.replaceAll('from', 'FROM');
+
+    // Extract the table name and the WHERE clause from the SQL query
+    final regex = RegExp(r'FROM (\w+) WHERE (.*)');
+    final match = regex.firstMatch(sql);
+    final table = match!.group(1);
+    final whereClause = match.group(2);
+
+    // Split the WHERE clause into individual conditions
+    final conditions = whereClause?.split(' AND ') ?? [];
+
+    // Create a list of maps representing the conditions
+    final whereArgs = conditions.map((c) {
+      final parts = c.split(' ');
+      final column = parts[0];
+      final operator = parts[1];
+      final value = parts[2];
+
+      // Convert the SQL operator to the corresponding Dart operator
+      String postgrestOperator = "";
+      switch (operator) {
+        case '>':
+          postgrestOperator = 'gt.';
+          break;
+        case '<':
+          postgrestOperator = 'lt.';
+          break;
+        case '=':
+          postgrestOperator = 'eq.';
+          break;
+      // Add other cases as needed
+      }
+
+      return {
+        'column': column,
+        'operator': postgrestOperator,
+        'value': value,
+      };
+    });
+
+    final apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJid3Z5eG5oYW1pY2h5d3FnanFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTU1NzcwNDcsImV4cCI6MTk3MTE1MzA0N30.CRalEPItZFPIRyGNz2_pmbALRHK1KMNVzejUsW_GnZY';
+    final endpoint = 'https://rbwvyxnhamichywqgjqb.supabase.co';
+
+    final response = await http.get(Uri.parse(
+        '$endpoint/rest/v1/$table?${whereArgs.map((
+            arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join(
+            '&')}'
+    ), headers: {
+      'apikey': apiKey,
+    });
+    final data = json.decode(response.body);
+    if (response.statusCode > 400){
+      throw Exception("incorrect SQL statement");
+    }
+    List<Map<String, dynamic>> finalData = data.cast<Map<String,dynamic>>();
+    return finalData;
+  }
+
   Future<List<Map<String, dynamic>>> sql(String rawSql) async {
     // Use the sqlparser library to parse the raw SQL string
     var parser = SqlEngine();
@@ -147,7 +208,12 @@ extension SupabaseExtensions on SupabaseClient{
     // break;
 
       default:
-        throw Exception("Unsupported SQL statement");
+        if(rawSql.toLowerCase().contains('select')){
+          results = await _sqlToDartOld(rawSql);
+        }
+        else {
+          throw Exception("Unsupported SQL statement");
+        }
     }
     return results;
   }

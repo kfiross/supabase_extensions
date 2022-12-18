@@ -10,7 +10,8 @@ void main() async {
   final supabase = SupabaseClient(SUPABASE_URL, SUPABASE_ANNON_KEY);
 
   const sqlString =
-      'select distinct year, semester from classes where real_year = 5783 and department = 1 and track = 1 order by semester, year';
+    'SELECT * FROM plan WHERE department_id = 1';
+    //  'select distinct year, semester from classes where real_year = 5783 and department = 1 and track = 1 order by semester, year';
       //'select distinct(classes.code), name, department, semester, is_online from classes, courses where classes.code = courses.code and department = $department and track = $track order by classes.code'
   //     // 'SELECT code FROM courses WHERE code > 32000 ORDER BY code LIMIT 2';
   List<Map<String, dynamic>> results = await supabase.sql(sqlString);
