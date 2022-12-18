@@ -165,15 +165,13 @@ extension SupabaseExtensions on SupabaseClient{
       };
     });
 
-    final apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJid3Z5eG5oYW1pY2h5d3FnanFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTU1NzcwNDcsImV4cCI6MTk3MTE1MzA0N30.CRalEPItZFPIRyGNz2_pmbALRHK1KMNVzejUsW_GnZY';
-    final endpoint = 'https://rbwvyxnhamichywqgjqb.supabase.co';
 
     final response = await http.get(Uri.parse(
-        '$endpoint/rest/v1/$table?${whereArgs.map((
+        '$supabaseUrl/rest/v1/$table?${whereArgs.map((
             arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join(
             '&')}'
     ), headers: {
-      'apikey': apiKey,
+      'apikey': supabaseKey,
     });
     final data = json.decode(response.body);
     if (response.statusCode > 400){
