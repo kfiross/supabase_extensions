@@ -1,4 +1,4 @@
 library supabase_extensions;
 
-export 'src/base.dart';
+export 'src/base.dart' show SupabaseExtensions;
 

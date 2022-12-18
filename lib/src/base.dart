@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sqlparser/sqlparser.dart';
 import 'package:supabase/supabase.dart';
+import 'list_ext.dart';
 
 extension SupabaseExtensions on SupabaseClient{
   Future<List<Map<String, dynamic>>> _performSelect(SelectStatement statement) async {
@@ -67,13 +68,13 @@ extension SupabaseExtensions on SupabaseClient{
 
       whereClause = whereArgs.map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join('&');
     }
-    String orderbyClause = "";
+    var orderbyClauses = <String>[];
     if(statement.orderBy != null){
       var orderingTerms = statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
       for(var term in orderingTerms){
         var field = "${term.expression}";
-        var ordering = term.orderingMode != OrderingMode.ascending ? 'desc' : 'asc';
-        orderbyClause += "$field.$ordering";
+        var ordering = term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
+        orderbyClauses.add("$field.$ordering");
       }
     }
 
@@ -87,22 +88,18 @@ extension SupabaseExtensions on SupabaseClient{
 
     }
     if (statement.orderBy != null) {
-      url += "&order=$orderbyClause";
+      url += "&order=${orderbyClauses.join(',')}";
     }
-    if (statement.distinct) {
-      url += "&distinct=true";
-    }
+    // if (statement.distinct) {
+    //   url += "&distinct=true";
+    // }
     if(statement.limit != null){
       url += "&limit=${(statement.limit! as Limit).count.toString().split('value ')[1]}";
     }
 
-    // if(url.contains('select=*')) {
-    //   url = url.replaceAll('select=*', '');
-    // }
-
-
     // GET https://rbwvyxnhamichywqgjqb.supabase.co/rest/v1/courses?code=eq.90023 ??
 
+    // print("GET $url");
     // Create a GET request to the URL
     http.Response response = await http.get(Uri.parse(url),
         headers: {
@@ -115,9 +112,16 @@ extension SupabaseExtensions on SupabaseClient{
     if (response.statusCode > 400){
       throw Exception("incorrect SQL statement");
     }
-    return data.cast<Map<String,dynamic>>();
+    List<Map<String, dynamic>> finalData = data.cast<Map<String,dynamic>>();
+
+    // "Distinct" trick on the list:
+    if(statement.distinct){
+      return finalData.distinct();
+    }
+    return finalData;
 
   }
+
   Future<List<Map<String, dynamic>>> sql(String rawSql) async {
     // Use the sqlparser library to parse the raw SQL string
     var parser = SqlEngine();
