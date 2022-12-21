@@ -5,17 +5,18 @@ import 'package:sqlparser/sqlparser.dart';
 import 'package:supabase/supabase.dart';
 import 'list_ext.dart';
 
-extension SupabaseExtensions on SupabaseClient{
-  Future<List<Map<String, dynamic>>> _performSelect(SelectStatement statement) async {
+extension SupabaseExtensions on SupabaseClient {
+  Future<List<Map<String, dynamic>>> _performSelect(
+      SelectStatement statement) async {
     // Extract the table name, column names, and WHERE clause from the statement
-    String tableName = statement.from?.first.toString().split(':')[1].trim() ?? "";
+    String tableName = (statement.table!.first as IdentifierToken).identifier;
+
     List<String> columnNames = [];
     for (var column in statement.columns) {
       columnNames.add(column.first.toString().split(':')[1].trim());
     }
     String whereClause = "";
     if (statement.where != null) {
-
       whereClause = statement.where.toString().split(':')[1].trim();
       whereClause = whereClause.replaceAll('and', 'AND');
 
@@ -47,33 +48,35 @@ extension SupabaseExtensions on SupabaseClient{
           case '<=':
             postgrestOperator = 'lte.';
             break;
-        // TODO: TEST
+          // TODO: TEST
           case 'LIKE':
             postgrestOperator = 'like';
             break;
-        // TODO: TEST
+          // TODO: TEST
           case 'IN':
             postgrestOperator = 'like';
             break;
-
         }
 
         return {
           'column': column,
           'operator': postgrestOperator,
           'value': value,
-
-         };
+        };
       });
 
-      whereClause = whereArgs.map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join('&');
+      whereClause = whereArgs
+          .map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}')
+          .join('&');
     }
     var orderbyClauses = <String>[];
-    if(statement.orderBy != null){
-      var orderingTerms = statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
-      for(var term in orderingTerms){
+    if (statement.orderBy != null) {
+      var orderingTerms =
+          statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
+      for (var term in orderingTerms) {
         var field = "${term.expression}";
-        var ordering = term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
+        var ordering =
+            term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
         orderbyClauses.add("$field.$ordering");
       }
     }
@@ -85,7 +88,6 @@ extension SupabaseExtensions on SupabaseClient{
     }
     if (whereClause.isNotEmpty) {
       url += "&$whereClause";
-
     }
     if (statement.orderBy != null) {
       url += "&order=${orderbyClauses.join(',')}";
@@ -93,33 +95,31 @@ extension SupabaseExtensions on SupabaseClient{
     // if (statement.distinct) {
     //   url += "&distinct=true";
     // }
-    if(statement.limit != null){
-      url += "&limit=${(statement.limit! as Limit).count.toString().split('value ')[1]}";
+    if (statement.limit != null) {
+      url +=
+          "&limit=${(statement.limit! as Limit).count.toString().split('value ')[1]}";
     }
 
     // GET https://rbwvyxnhamichywqgjqb.supabase.co/rest/v1/courses?code=eq.90023 ??
 
-    // print("GET $url");
+    print("GET $url");
     // Create a GET request to the URL
-    http.Response response = await http.get(Uri.parse(url),
-        headers: {
-          'apikey': supabaseKey,
-        });
-
+    http.Response response = await http.get(Uri.parse(url), headers: {
+      'apikey': supabaseKey,
+    });
 
     final data = json.decode(response.body);
 
-    if (response.statusCode > 400){
+    if (response.statusCode > 400) {
       throw Exception("incorrect SQL statement");
     }
-    List<Map<String, dynamic>> finalData = data.cast<Map<String,dynamic>>();
+    List<Map<String, dynamic>> finalData = data.cast<Map<String, dynamic>>();
 
     // "Distinct" trick on the list:
-    if(statement.distinct){
+    if (statement.distinct) {
       return finalData.distinct();
     }
     return finalData;
-
   }
 
   Future<List<Map<String, dynamic>>> _sqlToDartOld(String sql) async {
@@ -155,7 +155,7 @@ extension SupabaseExtensions on SupabaseClient{
         case '=':
           postgrestOperator = 'eq.';
           break;
-      // Add other cases as needed
+        // Add other cases as needed
       }
 
       return {
@@ -165,51 +165,88 @@ extension SupabaseExtensions on SupabaseClient{
       };
     });
 
-
-    final response = await http.get(Uri.parse(
-        '$supabaseUrl/rest/v1/$table?${whereArgs.map((
-            arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join(
-            '&')}'
-    ), headers: {
+    final url =
+        '$supabaseUrl/rest/v1/$table?${whereArgs.map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join('&')}';
+    final response = await http.get(Uri.parse(url), headers: {
       'apikey': supabaseKey,
     });
     final data = json.decode(response.body);
-    if (response.statusCode > 400){
+    if (response.statusCode > 400) {
       throw Exception("incorrect SQL statement");
     }
-    List<Map<String, dynamic>> finalData = data.cast<Map<String,dynamic>>();
+    List<Map<String, dynamic>> finalData = data.cast<Map<String, dynamic>>();
     return finalData;
   }
 
-  Future<List<Map<String, dynamic>>> sql(String rawSql) async {
+  Future _performInsert(InsertStatement statement) async {
+    // Extract the table name, column names, values, and WHERE clause from the statement
+    String tableName = (statement.table.first as IdentifierToken).identifier;
+    List<String> columnNames = [];
+    for (var column in statement.targetColumns) {
+      columnNames.add(column.columnName);
+    }
+
+    List<dynamic> values = [];
+    var valuesExpressions = (statement.source.childNodes.first as Tuple).expressions;
+    for (var exp in valuesExpressions) {
+      values.add((exp as Literal).value);
+    }
+
+    // Build the URL with query parameters
+    String url = "$supabaseUrl/rest/v1/$tableName";
+    String data = "";
+    for (int i = 0; i < columnNames.length; i++) {
+      if (i > 0) {
+        data += '&';
+      }
+      data += '${columnNames[i]}=${values[i]}';
+    }
+
+    print("POST $url (body=$data)");
+    // Create a GET request to the URL
+    http.Response response =
+        await http.post(Uri.parse(url), body: data, headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'apikey': supabaseKey,
+    });
+
+    if (response.statusCode >= 400) {
+      return jsonDecode(response.body);
+    }
+    return {
+      'status': response.statusCode,
+    };
+  }
+
+  Future sql(String rawSql) async {
     // Use the sqlparser library to parse the raw SQL string
     var parser = SqlEngine();
     var statement = parser.parse(rawSql).rootNode;
-    List<Map<String, dynamic>> results = [];
+    dynamic results;
 
-    switch(statement.runtimeType){
+    switch (statement.runtimeType) {
       case SelectStatement:
         print("SelectStatement");
         results = await _performSelect(statement as SelectStatement);
         break;
       case InsertStatement:
         print("InsertStatement");
-        throw Exception("Insert Statement is Unsupported");
-    // break;
+        results = await _performInsert(statement as InsertStatement);
+        break;
+      // break;
       case UpdateStatement:
         print("UpdateStatement");
         throw Exception("Update Statement is Unsupported");
-    // break;
+      // break;
       case DeleteStatement:
         print("DeleteStatement");
         throw Exception("Delete Statement is Unsupported");
-    // break;
+      // break;
 
       default:
-        if(rawSql.toLowerCase().contains('select')){
+        if (rawSql.toLowerCase().contains('select')) {
           results = await _sqlToDartOld(rawSql);
-        }
-        else {
+        } else {
           throw Exception("Unsupported SQL statement");
         }
     }
