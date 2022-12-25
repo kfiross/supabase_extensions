@@ -7,7 +7,7 @@ import 'package:supabase_extensions/src/query_results.dart';
 import 'list_ext.dart';
 
 extension SupabaseExtensions on SupabaseClient {
-  // String? get uid => auth.currentUser?.id;
+  String? get uid => auth.currentUser?.id;
 
   Future<QueryResults> _performSelect(
       SelectStatement statement) async {
