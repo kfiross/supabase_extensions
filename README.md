@@ -28,7 +28,7 @@ Fetching data using raw queries' strings using Supabase's database (Postgres)
 const sqlString = 'SELECT code FROM courses WHERE code > 32000 ORDER BY code LIMIT 2';
 QueryResults queryResults = await supabase.sql(sqlString);
 
-List<Map<String, dynamic>> results = queryResults.results;
+List<Map<String, dynamic>> rows = queryResults.rows;
 ```
 
 ### SupabaseClient.uid
