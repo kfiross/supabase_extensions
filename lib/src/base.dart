@@ -122,7 +122,7 @@ extension SupabaseExtensions on SupabaseClient {
     if (statement.distinct) {
       results = results.distinct();
     }
-    return QueryResults(results: results);
+    return QueryResults(rows: results);
   }
 
   Future<QueryResults> _sqlToDartOld(String sql) async {
@@ -178,7 +178,7 @@ extension SupabaseExtensions on SupabaseClient {
       throw Exception("incorrect SQL statement");
     }
     List<Map<String, dynamic>> results = data.cast<Map<String, dynamic>>();
-    return QueryResults(results: results);
+    return QueryResults(rows: results);
   }
 
   Future<QueryResults> _performInsert(InsertStatement statement) async {

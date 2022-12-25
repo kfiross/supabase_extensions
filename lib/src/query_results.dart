@@ -1,5 +1,5 @@
 class QueryResults{
-  final List<Map<String, dynamic>>? results;
+  final List<Map<String, dynamic>>? rows;
 
-  QueryResults({this.results});
+  QueryResults({this.rows});
 }
