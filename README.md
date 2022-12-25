@@ -3,9 +3,10 @@
 supabase_extensions is an extension library to the [Supabase](https://supabase.com/) API
 
 ## Features
-* Writing raw sql statement to the supabase (uses postgrest behind the scenes)
+* Using SQL statement strings to get results from Supabase (uses PostgREST behind the scenes)
+* Shorter syntax 
 
-**Note**: Select statement only  
+**Note**: Select/Insert statement only (WIP)  
 
 ## Getting started
 For using it on your app:
@@ -18,12 +19,25 @@ For API reference [check here](https://pub.dartlang.org/documentation/supabase_e
 
 ## Usage
 
+### SupabaseClient.sql(String rawQuery)
+Fetching data using raw queries' strings using Supabase's database (Postgres)
 ```dart
 // init Supabase Client..
 // final supabase = SupabaseClient('supabaseUrl', 'supabaseKey');
 
 const sqlString = 'SELECT code FROM courses WHERE code > 32000 ORDER BY code LIMIT 2';
-List<Map<String, dynamic>> results = await supabase.sql(sqlString);
+QueryResults queryResults = await supabase.sql(sqlString);
+
+List<Map<String, dynamic>> results = queryResults.results;
+```
+
+### SupabaseClient.uid
+Get the user's ID (if exist) easily
+```dart
+// init Supabase Client..
+// final supabase = SupabaseClient('supabaseUrl', 'supabaseKey');
+
+String? userId = supabase.uid;  /// instead supabase.auth.currentUser?.id
 ```
 
 ## Additional information

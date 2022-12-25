@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sqlparser/sqlparser.dart';
 import 'package:supabase/supabase.dart';
+import 'package:supabase_extensions/src/query_results.dart';
 import 'list_ext.dart';
 
 extension SupabaseExtensions on SupabaseClient {
-  Future<List<Map<String, dynamic>>> _performSelect(
+  // String? get uid => auth.currentUser?.id;
+
+  Future<QueryResults> _performSelect(
       SelectStatement statement) async {
     // Extract the table name, column names, and WHERE clause from the statement
     String tableName = (statement.table!.first as IdentifierToken).identifier;
@@ -113,16 +116,16 @@ extension SupabaseExtensions on SupabaseClient {
     if (response.statusCode > 400) {
       throw Exception("incorrect SQL statement");
     }
-    List<Map<String, dynamic>> finalData = data.cast<Map<String, dynamic>>();
+    List<Map<String, dynamic>> results = data.cast<Map<String, dynamic>>();
 
     // "Distinct" trick on the list:
     if (statement.distinct) {
-      return finalData.distinct();
+      results = results.distinct();
     }
-    return finalData;
+    return QueryResults(results: results);
   }
 
-  Future<List<Map<String, dynamic>>> _sqlToDartOld(String sql) async {
+  Future<QueryResults> _sqlToDartOld(String sql) async {
     print("SQL = $sql");
     sql = sql.replaceAll('where', 'WHERE');
     sql = sql.replaceAll('from', 'FROM');
@@ -174,11 +177,11 @@ extension SupabaseExtensions on SupabaseClient {
     if (response.statusCode > 400) {
       throw Exception("incorrect SQL statement");
     }
-    List<Map<String, dynamic>> finalData = data.cast<Map<String, dynamic>>();
-    return finalData;
+    List<Map<String, dynamic>> results = data.cast<Map<String, dynamic>>();
+    return QueryResults(results: results);
   }
 
-  Future _performInsert(InsertStatement statement) async {
+  Future<QueryResults> _performInsert(InsertStatement statement) async {
     // Extract the table name, column names, values, and WHERE clause from the statement
     String tableName = (statement.table.first as IdentifierToken).identifier;
     List<String> columnNames = [];
@@ -211,18 +214,18 @@ extension SupabaseExtensions on SupabaseClient {
     });
 
     if (response.statusCode >= 400) {
-      return jsonDecode(response.body);
+      //return jsonDecode(response.body);
+      throw Exception(response.body);
     }
-    return {
-      'status': response.statusCode,
-    };
+
+    return QueryResults();
   }
 
-  Future sql(String rawSql) async {
+  Future<QueryResults> sql(String rawSql) async {
     // Use the sqlparser library to parse the raw SQL string
     var parser = SqlEngine();
     var statement = parser.parse(rawSql).rootNode;
-    dynamic results;
+    QueryResults results;
 
     switch (statement.runtimeType) {
       case SelectStatement:
