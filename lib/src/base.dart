@@ -61,7 +61,7 @@ extension SupabaseExtensions on SupabaseClient {
         return {
           'column': column,
           'operator': postgrestOperator,
-          'value': value,
+          'value': value.replaceAll("'", ""),
         };
       });
 
