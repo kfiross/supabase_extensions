@@ -1,3 +1,6 @@
+## 0.3.1
+- Fixed bug with `SELECT` statements like `..AND field = 'string'`
+
 ## 0.3.0
 - Added `INSERT` statement support
 
