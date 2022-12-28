@@ -1,3 +1,6 @@
+## 0.5.0
+- Added streams listeners for single database-based event type
+
 ## 0.4.0
 - Using now `QueryResults` as return object to the `sql` function
 

@@ -40,6 +40,35 @@ Get the user's ID (if exist) easily
 String? userId = supabase.uid;  /// instead supabase.auth.currentUser?.id
 ```
 
+### Supabase.on(String table, String eventType)
+
+```dart
+// init Supabase Client..
+// final supabase = SupabaseClient('supabaseUrl', 'supabaseKey');
+
+// Regular way
+supabase.from('test').stream(primaryKey: ['id']).listen((event) {
+    print(event);
+});
+```
+You can listen to only single event type (`'INSERT'`,`'UPDATE'` or `'DELETE'`)
+```dart
+supabase.on('test', 'INSERT').listen((event) {
+    print(event);
+});
+
+// 2nd sytax
+supabasr.onInsert('test').listen((event) {
+  print(event);
+});
+```
+
+Remember to remove the channels and to close streams when you're done
+```dart
+supabase.removeAllChannels();
+supabase.closeAllStreams();   // ADD THIS TOO!
+```
+
 ## Additional information
 
 Based heavily on the [Postgrest API](https://postgrest.org/en/stable/api.html) 
