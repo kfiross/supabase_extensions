@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-extension ListExtension on List<Map<String, dynamic>>{
+extension ListExtension on List<Map<String, dynamic>> {
   List<Map<String, dynamic>> distinct() {
     // Create a set to store the distinct objects
     var distinctObjects = <String>{};
@@ -12,6 +12,8 @@ extension ListExtension on List<Map<String, dynamic>>{
     }
 
     // Convert the set back to a list of objects
-    return distinctObjects.map((str) => json.decode(str) as Map<String, dynamic>).toList();
+    return distinctObjects
+        .map((str) => json.decode(str) as Map<String, dynamic>)
+        .toList();
   }
 }

@@ -8,8 +8,6 @@ import 'package:supabase_extensions/src/query_results.dart';
 import 'list_ext.dart';
 import 'supabase_database_util.dart';
 
-
-
 extension SupabaseExtensions on SupabaseClient {
   SupabaseDatabase get _database => SupabaseDatabase.getInstance(this);
 
@@ -58,11 +56,11 @@ extension SupabaseExtensions on SupabaseClient {
           case '<=':
             postgrestOperator = 'lte.';
             break;
-        // TODO: TEST
+          // TODO: TEST
           case 'LIKE':
             postgrestOperator = 'like';
             break;
-        // TODO: TEST
+          // TODO: TEST
           case 'IN':
             postgrestOperator = 'like';
             break;
@@ -82,11 +80,11 @@ extension SupabaseExtensions on SupabaseClient {
     var orderbyClauses = <String>[];
     if (statement.orderBy != null) {
       var orderingTerms =
-      statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
+          statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
       for (var term in orderingTerms) {
         var field = "${term.expression}";
         var ordering =
-        term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
+            term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
         orderbyClauses.add("$field.$ordering");
       }
     }
@@ -107,8 +105,7 @@ extension SupabaseExtensions on SupabaseClient {
     // }
     if (statement.limit != null) {
       url +=
-      "&limit=${(statement.limit! as Limit).count.toString().split(
-          'value ')[1]}";
+          "&limit=${(statement.limit! as Limit).count.toString().split('value ')[1]}";
     }
 
     // GET https://rbwvyxnhamichywqgjqb.supabase.co/rest/v1/courses?code=eq.90023 ??
@@ -121,9 +118,16 @@ extension SupabaseExtensions on SupabaseClient {
 
     final data = json.decode(response.body);
 
-    if (response.statusCode > 400) {
-      throw Exception("incorrect SQL statement");
+    if (response.statusCode >= 500) {
+      throw Exception("PostgREST Error");
     }
+    if (response.statusCode > 400) {
+      throw Exception("SQL Error (code ${data['code']}): ${data['message']}");
+    } else if (response.statusCode == 400) {
+      throw Exception(
+          "Incorrect SQL statement (code ${data['code']}): ${data['message']}");
+    }
+
     List<Map<String, dynamic>> results = data.cast<Map<String, dynamic>>();
 
     // "Distinct" trick on the list:
@@ -166,7 +170,7 @@ extension SupabaseExtensions on SupabaseClient {
         case '=':
           postgrestOperator = 'eq.';
           break;
-      // Add other cases as needed
+        // Add other cases as needed
       }
 
       return {
@@ -177,15 +181,19 @@ extension SupabaseExtensions on SupabaseClient {
     });
 
     final url =
-        '$supabaseUrl/rest/v1/$table?${whereArgs.map((
-        arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join(
-        '&')}';
+        '$supabaseUrl/rest/v1/$table?${whereArgs.map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join('&')}';
     final response = await http.get(Uri.parse(url), headers: {
       'apikey': supabaseKey,
     });
     final data = json.decode(response.body);
+    if (response.statusCode >= 500) {
+      throw Exception("PostgREST Error");
+    }
     if (response.statusCode > 400) {
-      throw Exception("incorrect SQL statement");
+      throw Exception("SQL Error (code ${data['code']}): ${data['message']}");
+    } else if (response.statusCode == 400) {
+      throw Exception(
+          "Incorrect SQL statement (code ${data['code']}): ${data['message']}");
     }
     List<Map<String, dynamic>> results = data.cast<Map<String, dynamic>>();
     return QueryResults(rows: results);
@@ -219,13 +227,12 @@ extension SupabaseExtensions on SupabaseClient {
     print("POST $url (body=$data)");
     // Create a GET request to the URL
     http.Response response =
-    await http.post(Uri.parse(url), body: data, headers: {
+        await http.post(Uri.parse(url), body: data, headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'apikey': supabaseKey,
     });
 
     if (response.statusCode >= 400) {
-      //return jsonDecode(response.body);
       throw Exception(response.body);
     }
 
@@ -235,9 +242,7 @@ extension SupabaseExtensions on SupabaseClient {
   Future<QueryResults> sql(String rawSql) async {
     // Use the sqlparser library to parse the raw SQL string
     var parser = SqlEngine();
-    var statement = parser
-        .parse(rawSql)
-        .rootNode;
+    var statement = parser.parse(rawSql).rootNode;
     QueryResults results;
 
     switch (statement.runtimeType) {
@@ -249,15 +254,15 @@ extension SupabaseExtensions on SupabaseClient {
         print("InsertStatement");
         results = await _performInsert(statement as InsertStatement);
         break;
-    // break;
+      // break;
       case UpdateStatement:
         print("UpdateStatement");
         throw Exception("Update Statement is Unsupported");
-    // break;
+      // break;
       case DeleteStatement:
         print("DeleteStatement");
         throw Exception("Delete Statement is Unsupported");
-    // break;
+      // break;
 
       default:
         if (rawSql.toLowerCase().contains('select')) {

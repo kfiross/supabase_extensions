@@ -1,20 +1,23 @@
 import 'package:supabase/supabase.dart';
+import 'package:supabase_extensions/src/query_results.dart';
 import 'package:supabase_extensions/supabase_extensions.dart';
 
 void main() async {
   // init Supabase Client..
 
-
   final supabase = SupabaseClient(SUPABASE_URL, SUPABASE_ANNON_KEY);
 
-  final userID = supabase.uid;
+  // final userID = supabase.uid;
+
+  var results = await supabase.sql(
+      "select * from user_constraints where user_id = 'dcde0dba-f759-4700-84a2-5534aadaaf54'");
+  print(results.rows ?? []);
 
   supabase.auth.onAuthStateChange.listen((authState) {
-    if(authState.event == AuthChangeEvent.signedOut) {
+    if (authState.event == AuthChangeEvent.signedOut) {
       // go to login screen automagically
     }
   });
-
 
   //
   // supabase.from('test').stream(primaryKey: ['id']).listen((event) {
@@ -28,7 +31,6 @@ void main() async {
   // remember to remove the channels when you're done
   supabase.removeAllChannels();
   supabase.closeAllStreams();
-
 
   //
   // var _schema = 'public';
@@ -51,10 +53,9 @@ void main() async {
 
   await Future.delayed(Duration(seconds: 100));
 
-
   // supabase.deleteFolder(bucketId, folderPath);
   // storage.from(bucketId).remove([folderPath]);
-  
+
   // const sqlString =
   //   'SELECT * FROM plan WHERE department_id = 1';
   // List<Map<String, dynamic>> results = await supabase.sql(sqlString);
@@ -68,6 +69,4 @@ void main() async {
   // final sqlInsertString = "INSERT INTO app_counters (type, value) VALUES ('kuku', 6)";// WHERE type = 'app_visits'";
   // var results = await supabase.sql(sqlInsertString);
   // print(results);
-
-
 }
