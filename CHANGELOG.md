@@ -1,3 +1,6 @@
+## 0.5.1
+- Better error handling + updated `pub.dev` score
+
 ## 0.5.0
 - Added streams listeners for single database-based event type
 
