@@ -8,7 +8,7 @@ import 'package:supabase_extensions/src/query_results.dart';
 import 'list_ext.dart';
 import 'supabase_database_util.dart';
 
-enum CrudEvent {insert, update, delete}
+enum CrudEvent { insert, update, delete }
 
 extension SupabaseExtensions on SupabaseClient {
   SupabaseDatabase get _database => SupabaseDatabase.getInstance(this);
@@ -60,11 +60,11 @@ extension SupabaseExtensions on SupabaseClient {
           case '<=':
             postgrestOperator = 'lte.';
             break;
-        // TODO: TEST
+          // TODO: TEST
           case 'LIKE':
             postgrestOperator = 'like';
             break;
-        // TODO: TEST
+          // TODO: TEST
           case 'IN':
             postgrestOperator = 'in';
             break;
@@ -84,11 +84,11 @@ extension SupabaseExtensions on SupabaseClient {
     var orderbyClauses = <String>[];
     if (statement.orderBy != null) {
       var orderingTerms =
-      statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
+          statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
       for (var term in orderingTerms) {
         var field = "${term.expression}";
         var ordering =
-        term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
+            term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
         orderbyClauses.add("$field.$ordering");
       }
     }
@@ -106,8 +106,7 @@ extension SupabaseExtensions on SupabaseClient {
     }
     if (statement.limit != null) {
       url +=
-      "&limit=${(statement.limit! as Limit).count.toString().split(
-          'value ')[1]}";
+          "&limit=${(statement.limit! as Limit).count.toString().split('value ')[1]}";
     }
 
     // GET https://rbwvyxnhamichywqgjqb.supabase.co/rest/v1/courses?code=eq.90023 ??
@@ -172,7 +171,7 @@ extension SupabaseExtensions on SupabaseClient {
         case '=':
           postgrestOperator = 'eq.';
           break;
-      // Add other cases as needed
+        // Add other cases as needed
       }
 
       return {
@@ -183,9 +182,7 @@ extension SupabaseExtensions on SupabaseClient {
     });
 
     final url =
-        '$supabaseUrl/rest/v1/$table?${whereArgs.map((
-        arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join(
-        '&')}';
+        '$supabaseUrl/rest/v1/$table?${whereArgs.map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join('&')}';
     final response = await http.get(Uri.parse(url), headers: {
       'apikey': supabaseKey,
     });
@@ -231,7 +228,7 @@ extension SupabaseExtensions on SupabaseClient {
     print("POST $url (body=$data)");
     // Create a POST request to the URL
     http.Response response =
-    await http.post(Uri.parse(url), body: data, headers: {
+        await http.post(Uri.parse(url), body: data, headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'apikey': supabaseKey,
     });
@@ -285,11 +282,11 @@ extension SupabaseExtensions on SupabaseClient {
           case '<=':
             postgrestOperator = 'lte.';
             break;
-        // TODO: TEST
+          // TODO: TEST
           case 'LIKE':
             postgrestOperator = 'like';
             break;
-        // TODO: TEST
+          // TODO: TEST
           case 'IN':
             postgrestOperator = 'in';
             break;
@@ -302,18 +299,20 @@ extension SupabaseExtensions on SupabaseClient {
         };
       }).toList();
 
-      for (var arg in whereArgs){
-        filterCondition[arg['column']] = {"operator": arg['operator'], "value": arg['value']};
+      for (var arg in whereArgs) {
+        filterCondition[arg['column']] = {
+          "operator": arg['operator'],
+          "value": arg['value']
+        };
       }
     }
 
     // Create a DELETE request to the URL
-    http.Response response =
-    await http.delete(Uri.parse(url), body: jsonEncode(filterCondition),
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': supabaseKey,
-        });
+    http.Response response = await http
+        .delete(Uri.parse(url), body: jsonEncode(filterCondition), headers: {
+      'Content-Type': 'application/json',
+      'apikey': supabaseKey,
+    });
 
     if (response.statusCode >= 400) {
       throw Exception(response.body);
@@ -323,7 +322,6 @@ extension SupabaseExtensions on SupabaseClient {
 
     return QueryResults();
   }
-
 
   Future<QueryResults> sql(String rawSql) async {
     // Use the sqlparser library to parse the raw SQL string

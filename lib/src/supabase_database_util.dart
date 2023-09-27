@@ -28,9 +28,12 @@ class SupabaseDatabase {
 
     _incrementId++;
     var channel = supabaseClient.realtime.channel(realtimeTopic);
-    channel.on(RealtimeListenTypes.postgresChanges,
-        ChannelFilter(event: event?.name ?? '*', schema: 'public', table: table),
-        (payload, [ref]) {
+    channel.on(
+        RealtimeListenTypes.postgresChanges,
+        ChannelFilter(
+            event: event?.name ?? '*',
+            schema: 'public',
+            table: table), (payload, [ref]) {
       _onEventHandler(payload, streamController);
     }).subscribe();
 
