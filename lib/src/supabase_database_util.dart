@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:supabase/supabase.dart';
 
+import 'base.dart';
+
 var _incrementId = 1;
 
 class SupabaseDatabase {
@@ -18,16 +20,16 @@ class SupabaseDatabase {
     return Future.wait(_streams.values.map((stream) => stream.close()));
   }
 
-  Stream<dynamic> onTableChanged(String table, {String? event}) {
+  Stream<dynamic> onTableChanged(String table, {CrudEvent? event}) {
     final streamController = StreamController.broadcast();
-    var realtimeTopic = 'public:$table:$_incrementId';
+    final String realtimeTopic = 'public:$table:$_incrementId';
 
     _streams['channel_$realtimeTopic'] = streamController;
 
     _incrementId++;
     var channel = supabaseClient.realtime.channel(realtimeTopic);
     channel.on(RealtimeListenTypes.postgresChanges,
-        ChannelFilter(event: event ?? '*', schema: 'public', table: table),
+        ChannelFilter(event: event?.name ?? '*', schema: 'public', table: table),
         (payload, [ref]) {
       _onEventHandler(payload, streamController);
     }).subscribe();
@@ -48,7 +50,10 @@ class SupabaseDatabase {
         streamController.add(newRecord);
         break;
 
+      // TODO: need to check
       case "DELETE":
+        final newRecord = Map<String, dynamic>.from(payload['new']!);
+        streamController.add(newRecord);
         break;
     }
   }

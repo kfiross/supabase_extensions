@@ -1,12 +1,13 @@
 # supabase_extensions
 
-supabase_extensions is an extension library to the [Supabase](https://supabase.com/) API
+supabase_extensions is a couple of extensions to the [Supabase](https://supabase.com/) API
 
 ## Features
 * Using SQL statement strings to get results from Supabase (uses PostgREST behind the scenes)
-* Shorter syntax 
+* Shorter syntax when possible
+* Simpler way to listen to changes in the Database
 
-**Note**: Select/Insert statement only (WIP)  
+**Note**: only Select/Insert SQL statement are supported (WIP)  
 
 ## Getting started
 For using it on your app:
@@ -40,7 +41,16 @@ Get the user's ID (if exist) easily
 String? userId = supabase.uid;  /// instead supabase.auth.currentUser?.id
 ```
 
-### Supabase.on(String table, String eventType)
+### Supabase.isLogged
+Get if the user already logged in or not
+```dart
+// init Supabase Client..
+// final supabase = SupabaseClient('supabaseUrl', 'supabaseKey');
+
+bool isLoggedIn = supabase.isLogged;  /// instead supabase.auth.currentUser?.id != null
+```
+
+### Supabase.on(String table, CrudEvent eventType)
 
 ```dart
 // init Supabase Client..
@@ -53,11 +63,17 @@ supabase.from('test').stream(primaryKey: ['id']).listen((event) {
 ```
 You can listen to only single event type (`'INSERT'`,`'UPDATE'` or `'DELETE'`)
 ```dart
-supabase.on('test', 'INSERT').listen((event) {
+// any event in table 'test'
+supabase.on('test').listen((event) {
+print(event);
+});
+
+// only INSERT events in table 'test'
+supabase.on('test', CrudEvent.insert).listen((event) {
     print(event);
 });
 
-// 2nd sytax
+// shorter syntax for only INSERT
 supabasr.onInsert('test').listen((event) {
   print(event);
 });

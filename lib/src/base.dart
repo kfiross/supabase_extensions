@@ -8,10 +8,14 @@ import 'package:supabase_extensions/src/query_results.dart';
 import 'list_ext.dart';
 import 'supabase_database_util.dart';
 
+enum CrudEvent {insert, update, delete}
+
 extension SupabaseExtensions on SupabaseClient {
   SupabaseDatabase get _database => SupabaseDatabase.getInstance(this);
 
   String? get uid => auth.currentUser?.id;
+
+  bool? get isLogged => uid != null;
 
   // Map<String, dynamic> get userMetadata => auth.currentUser?.userMetadata ?? {};
 
@@ -56,13 +60,13 @@ extension SupabaseExtensions on SupabaseClient {
           case '<=':
             postgrestOperator = 'lte.';
             break;
-          // TODO: TEST
+        // TODO: TEST
           case 'LIKE':
             postgrestOperator = 'like';
             break;
-          // TODO: TEST
+        // TODO: TEST
           case 'IN':
-            postgrestOperator = 'like';
+            postgrestOperator = 'in';
             break;
         }
 
@@ -80,11 +84,11 @@ extension SupabaseExtensions on SupabaseClient {
     var orderbyClauses = <String>[];
     if (statement.orderBy != null) {
       var orderingTerms =
-          statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
+      statement.orderBy!.childNodes.map((e) => e as OrderingTerm);
       for (var term in orderingTerms) {
         var field = "${term.expression}";
         var ordering =
-            term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
+        term.orderingMode != OrderingMode.descending ? 'asc' : 'desc';
         orderbyClauses.add("$field.$ordering");
       }
     }
@@ -100,12 +104,10 @@ extension SupabaseExtensions on SupabaseClient {
     if (statement.orderBy != null) {
       url += "&order=${orderbyClauses.join(',')}";
     }
-    // if (statement.distinct) {
-    //   url += "&distinct=true";
-    // }
     if (statement.limit != null) {
       url +=
-          "&limit=${(statement.limit! as Limit).count.toString().split('value ')[1]}";
+      "&limit=${(statement.limit! as Limit).count.toString().split(
+          'value ')[1]}";
     }
 
     // GET https://rbwvyxnhamichywqgjqb.supabase.co/rest/v1/courses?code=eq.90023 ??
@@ -170,7 +172,7 @@ extension SupabaseExtensions on SupabaseClient {
         case '=':
           postgrestOperator = 'eq.';
           break;
-        // Add other cases as needed
+      // Add other cases as needed
       }
 
       return {
@@ -181,7 +183,9 @@ extension SupabaseExtensions on SupabaseClient {
     });
 
     final url =
-        '$supabaseUrl/rest/v1/$table?${whereArgs.map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join('&')}';
+        '$supabaseUrl/rest/v1/$table?${whereArgs.map((
+        arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join(
+        '&')}';
     final response = await http.get(Uri.parse(url), headers: {
       'apikey': supabaseKey,
     });
@@ -225,9 +229,9 @@ extension SupabaseExtensions on SupabaseClient {
     }
 
     print("POST $url (body=$data)");
-    // Create a GET request to the URL
+    // Create a POST request to the URL
     http.Response response =
-        await http.post(Uri.parse(url), body: data, headers: {
+    await http.post(Uri.parse(url), body: data, headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'apikey': supabaseKey,
     });
@@ -238,6 +242,88 @@ extension SupabaseExtensions on SupabaseClient {
 
     return QueryResults();
   }
+
+  Future<QueryResults> _performDelete(DeleteStatement statement) async {
+    String tableName = (statement.table.first as IdentifierToken).identifier;
+
+    // Build the URL with query parameters
+    String url = "$supabaseUrl/rest/v1/$tableName";
+
+    print("DELETE $url");
+
+    String whereClause = "";
+    final filterCondition = {};
+    if (statement.where != null) {
+      whereClause = statement.where.toString().split(':')[1].trim();
+      whereClause = whereClause.replaceAll('and', 'AND');
+
+      // Split the WHERE clause into individual conditions
+      final conditions = whereClause.split(' AND ');
+
+      // Create a list of maps representing the conditions
+      final whereArgs = conditions.map((c) {
+        final parts = c.split(' ');
+        final column = parts[0];
+        final operator = parts[1];
+        final value = parts[2];
+
+        // Convert the SQL operator to the corresponding PostgREST operator
+        String postgrestOperator = "";
+        switch (operator) {
+          case '=':
+            postgrestOperator = 'eq.';
+            break;
+          case '>':
+            postgrestOperator = 'gt.';
+            break;
+          case '>=':
+            postgrestOperator = 'gte.';
+            break;
+          case '<':
+            postgrestOperator = 'lt.';
+            break;
+          case '<=':
+            postgrestOperator = 'lte.';
+            break;
+        // TODO: TEST
+          case 'LIKE':
+            postgrestOperator = 'like';
+            break;
+        // TODO: TEST
+          case 'IN':
+            postgrestOperator = 'in';
+            break;
+        }
+
+        return {
+          'column': column,
+          'operator': postgrestOperator,
+          'value': value.replaceAll("'", ""),
+        };
+      }).toList();
+
+      for (var arg in whereArgs){
+        filterCondition[arg['column']] = {"operator": arg['operator'], "value": arg['value']};
+      }
+    }
+
+    // Create a DELETE request to the URL
+    http.Response response =
+    await http.delete(Uri.parse(url), body: jsonEncode(filterCondition),
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseKey,
+        });
+
+    if (response.statusCode >= 400) {
+      throw Exception(response.body);
+    }
+
+    final data = json.decode(response.body);
+
+    return QueryResults();
+  }
+
 
   Future<QueryResults> sql(String rawSql) async {
     // Use the sqlparser library to parse the raw SQL string
@@ -254,15 +340,14 @@ extension SupabaseExtensions on SupabaseClient {
         print("InsertStatement");
         results = await _performInsert(statement as InsertStatement);
         break;
-      // break;
-      case UpdateStatement:
-        print("UpdateStatement");
-        throw Exception("Update Statement is Unsupported");
-      // break;
+      // case UpdateStatement:
+      //   print("UpdateStatement");
+      //   // results = await _performInsert(statement as InsertStatement);
+      //   break;
       case DeleteStatement:
         print("DeleteStatement");
-        throw Exception("Delete Statement is Unsupported");
-      // break;
+        results = await _performDelete(statement as DeleteStatement);
+        break;
 
       default:
         if (rawSql.toLowerCase().contains('select')) {
@@ -274,20 +359,20 @@ extension SupabaseExtensions on SupabaseClient {
     return results;
   }
 
-  Stream<dynamic> on(String table, String eventType) {
+  Stream<dynamic> on(String table, CrudEvent? eventType) {
     return _database.onTableChanged(table, event: eventType);
   }
 
   Stream<dynamic> onInsert(String table) {
-    return _database.onTableChanged(table, event: 'INSERT');
+    return _database.onTableChanged(table, event: CrudEvent.insert);
   }
 
   Stream<dynamic> onUpdate(String table) {
-    return _database.onTableChanged(table, event: 'UPDATE');
+    return _database.onTableChanged(table, event: CrudEvent.update);
   }
 
   Stream<dynamic> onDelete(String table) {
-    return _database.onTableChanged(table, event: 'DELETE');
+    return _database.onTableChanged(table, event: CrudEvent.delete);
   }
 
   Future<void> closeAllStreams() => _database.closeAllStream();
