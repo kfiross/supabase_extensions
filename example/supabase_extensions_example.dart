@@ -1,7 +1,6 @@
 import 'package:supabase/supabase.dart';
 import 'package:supabase_extensions/src/base.dart';
 import 'package:supabase_extensions/src/query_results.dart';
-import 'package:supabase_extensions/supabase_extensions.dart';
 
 void main() async {
   // init Supabase Client..
