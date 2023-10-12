@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+/// Extension to handle better list result from SQL
 extension ListExtension on List<Map<String, dynamic>> {
+  /// Return list without duplicates, in a similar manner to DISTINCT in sql
   List<Map<String, dynamic>> distinct() {
     // Create a set to store the distinct objects
     var distinctObjects = <String>{};

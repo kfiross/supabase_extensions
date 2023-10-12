@@ -13,12 +13,15 @@ enum CrudEvent { insert, update, delete }
 extension SupabaseExtensions on SupabaseClient {
   SupabaseDatabase get _database => SupabaseDatabase.getInstance(this);
 
+  /// Returns current user id (user has logged in )
   String? get uid => auth.currentUser?.id;
 
+  /// Returns if user has logged in or not
   bool? get isLogged => uid != null;
 
   // Map<String, dynamic> get userMetadata => auth.currentUser?.userMetadata ?? {};
 
+  /// Executing a given [SelectStatement] statement and returns the rows
   Future<QueryResults> _performSelect(SelectStatement statement) async {
     // Extract the table name, column names, and WHERE clause from the statement
     String tableName = (statement.table!.first as IdentifierToken).identifier;
@@ -139,7 +142,6 @@ extension SupabaseExtensions on SupabaseClient {
   }
 
   Future<QueryResults> _sqlToDartOld(String sql) async {
-    print("SQL = $sql");
     sql = sql.replaceAll('where', 'WHERE');
     sql = sql.replaceAll('from', 'FROM');
 
@@ -200,6 +202,7 @@ extension SupabaseExtensions on SupabaseClient {
     return QueryResults(rows: results);
   }
 
+  /// Executing a given [InsertStatement] statement and returns the rows
   Future<QueryResults> _performInsert(InsertStatement statement) async {
     // Extract the table name, column names, values, and WHERE clause from the statement
     String tableName = (statement.table.first as IdentifierToken).identifier;
@@ -240,6 +243,7 @@ extension SupabaseExtensions on SupabaseClient {
     return QueryResults();
   }
 
+  /// Executing a given [DeleteStatement] statement and returns the rows
   Future<QueryResults> _performDelete(DeleteStatement statement) async {
     String tableName = (statement.table.first as IdentifierToken).identifier;
 
@@ -323,6 +327,7 @@ extension SupabaseExtensions on SupabaseClient {
     return QueryResults();
   }
 
+  /// Executing a given [rawSql] string statement and returns the rows
   Future<QueryResults> sql(String rawSql) async {
     // Use the sqlparser library to parse the raw SQL string
     var parser = SqlEngine();
@@ -357,21 +362,25 @@ extension SupabaseExtensions on SupabaseClient {
     return results;
   }
 
+  /// Returns a stream that listen to changes when [eventType] occurred in [table]
   Stream<dynamic> on(String table, CrudEvent? eventType) {
     return _database.onTableChanged(table, event: eventType);
   }
-
+  /// Returns a stream that listen to changes when 'INSERT' occurred in [table]
   Stream<dynamic> onInsert(String table) {
     return _database.onTableChanged(table, event: CrudEvent.insert);
   }
 
+  /// Returns a stream that listen to changes when 'UPDATE' occurred in [table]
   Stream<dynamic> onUpdate(String table) {
     return _database.onTableChanged(table, event: CrudEvent.update);
   }
 
+  /// Returns a stream that listen to changes when 'DELETE' occurred in [table]
   Stream<dynamic> onDelete(String table) {
     return _database.onTableChanged(table, event: CrudEvent.delete);
   }
 
+  /// Closes all the open stream done with listening to table changes
   Future<void> closeAllStreams() => _database.closeAllStream();
 }

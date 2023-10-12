@@ -16,10 +16,12 @@ class SupabaseDatabase {
 
   final Map<String, StreamController> _streams = {};
 
+  /// Closes all the open stream done with listening to table changes
   Future<void> closeAllStream() {
     return Future.wait(_streams.values.map((stream) => stream.close()));
   }
 
+  /// Returns a stream that listen to changes when [event] occurred in [table]
   Stream<dynamic> onTableChanged(String table, {CrudEvent? event}) {
     final streamController = StreamController.broadcast();
     final String realtimeTopic = 'public:$table:$_incrementId';
