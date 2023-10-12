@@ -1,3 +1,6 @@
+## [0.6.0+1]
+* updated `pub.dev` score
+
 ## [0.6.0]
 - added `Supabase.isLogged`
 - updated `Supabase.on` event parameter from `String` into enum `CrudEvent`
