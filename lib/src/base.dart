@@ -322,7 +322,7 @@ extension SupabaseExtensions on SupabaseClient {
       throw Exception(response.body);
     }
 
-    final data = json.decode(response.body);
+    final _ = json.decode(response.body);
 
     return QueryResults();
   }
@@ -366,6 +366,7 @@ extension SupabaseExtensions on SupabaseClient {
   Stream<dynamic> on(String table, CrudEvent? eventType) {
     return _database.onTableChanged(table, event: eventType);
   }
+
   /// Returns a stream that listen to changes when 'INSERT' occurred in [table]
   Stream<dynamic> onInsert(String table) {
     return _database.onTableChanged(table, event: CrudEvent.insert);

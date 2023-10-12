@@ -13,15 +13,15 @@ void main() async {
   //var results = await supabase.sql("select * from user_constraints where user_id = '$u'");
   //print(results.rows ?? []);
 
-  var results = await supabase.sql("select * from user_constraints where user_id = '$userId'");
+  var results = await supabase
+      .sql("select * from user_constraints where user_id = '$userId'");
   print(results.rows ?? []);
 
   supabase.auth.onAuthStateChange.listen((authState) {
-    if(authState.event == AuthChangeEvent.signedOut) {
+    if (authState.event == AuthChangeEvent.signedOut) {
       // go to login screen automagically
     }
   });
-
 
   //
   // supabase.from('test').stream(primaryKey: ['id']).listen((event) {
@@ -61,7 +61,6 @@ void main() async {
 
   await Future.delayed(Duration(seconds: 100));
 
-
   // supabase.deleteFolder(bucketId, folderPath);
   // storage.from(bucketId).remove([folderPath]);
 
@@ -70,7 +69,8 @@ void main() async {
   // List<Map<String, dynamic>> results = await supabase.sql(sqlString);
 
   //
-  QueryResults data =  await supabase.sql("select last_data from saved_schedules where user_id = '6bce5d00-5365-4d44-a33b-089ee431161b'");
+  QueryResults data = await supabase.sql(
+      "select last_data from saved_schedules where user_id = '6bce5d00-5365-4d44-a33b-089ee431161b'");
   // print(data.rows);
 
   // supabase.from('app_counters').update({'value': 6}, options: FetchOptions(forceResponse: true))
@@ -78,6 +78,4 @@ void main() async {
   // final sqlInsertString = "INSERT INTO app_counters (type, value) VALUES ('kuku', 6)";// WHERE type = 'app_visits'";
   // var results = await supabase.sql(sqlInsertString);
   // print(results);
-
-
 }
