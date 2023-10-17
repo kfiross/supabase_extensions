@@ -17,7 +17,7 @@ extension SupabaseExtensions on SupabaseClient {
   String? get uid => auth.currentUser?.id;
 
   /// Returns if user has logged in or not
-  bool? get isLogged => uid != null;
+  bool get isLogged => uid != null;
 
   // Map<String, dynamic> get userMetadata => auth.currentUser?.userMetadata ?? {};
 

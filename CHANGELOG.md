@@ -1,3 +1,6 @@
+## [0.6.1]
+* fixed `Supabase.isLogged` to return `bool`
+
 ## [0.6.0+1]
 * updated `pub.dev` score
 
