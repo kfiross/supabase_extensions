@@ -19,6 +19,9 @@ extension SupabaseExtensions on SupabaseClient {
   /// Returns if user has logged in or not
   bool get isLogged => uid != null;
 
+  /// Return jwt (accessToken) of current session
+  String? get jwt => auth.currentSession?.accessToken;
+
   // Map<String, dynamic> get userMetadata => auth.currentUser?.userMetadata ?? {};
 
   /// Executing a given [SelectStatement] statement and returns the rows
