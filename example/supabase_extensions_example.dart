@@ -1,9 +1,13 @@
 import 'package:supabase/supabase.dart';
 import 'package:supabase_extensions/src/base.dart';
 import 'package:supabase_extensions/src/query_results.dart';
+import 'package:dotenv/dotenv.dart';
 
 void main() async {
   // init Supabase Client..
+  var env = DotEnv(includePlatformEnvironment: true)..load();
+  final String SUPABASE_URL = env['SUPABASE_URL']!;
+  final String SUPABASE_ANNON_KEY = env['SUPABASE_ANNON_KEY']!;
 
   final supabase = SupabaseClient(SUPABASE_URL, SUPABASE_ANNON_KEY);
 
@@ -17,16 +21,16 @@ void main() async {
       .sql("select * from user_constraints where user_id = '$userId'");
   print(results.rows ?? []);
 
-  supabase.auth.onAuthStateChange.listen((authState) {
-    if (authState.event == AuthChangeEvent.signedOut) {
-      // go to login screen automagically
-    }
-  });
+  // supabase.auth.onAuthStateChange.listen((authState) {
+  //   if (authState.event == AuthChangeEvent.signedOut) {
+  //     // go to login screen automagically
+  //   }
+  // });
 
   //
-  // supabase.from('test').stream(primaryKey: ['id']).listen((event) {
-  //   print(event);
-  // });
+  supabase.from('test').stream(primaryKey: ['id']).listen((event) {
+    print(event);
+  });
 
   supabase.on('test', CrudEvent.insert).listen((event) {
     print(event);

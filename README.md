@@ -50,6 +50,17 @@ Get if the user already logged in or not
 bool isLoggedIn = supabase.isLogged;  /// instead supabase.auth.currentUser?.id != null
 ```
 
+### Supabase.jwt
+Get the user's current session access token (if the user already logged in)
+```dart
+// init Supabase Client..
+// final supabase = SupabaseClient('supabaseUrl', 'supabaseKey');
+
+String? accessToken = supabase.jwt;  /// instead supabase.auth.currentSession?.accessToken
+```
+
+
+
 ### Supabase.on(String table, CrudEvent eventType)
 
 ```dart

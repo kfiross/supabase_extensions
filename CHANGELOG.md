@@ -1,8 +1,11 @@
+## [0.6.2]
+- Added `Supabase.jwt` to retrieve accessToken easily
+
 ## [0.6.1]
-* fixed `Supabase.isLogged` to return `bool`
+- fixed `Supabase.isLogged` to return `bool`
 
 ## [0.6.0+1]
-* updated `pub.dev` score
+- updated `pub.dev` score
 
 ## [0.6.0]
 - added `Supabase.isLogged`
