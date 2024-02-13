@@ -13,6 +13,11 @@ enum CrudEvent { insert, update, delete }
 extension SupabaseExtensions on SupabaseClient {
   SupabaseDatabase get _database => SupabaseDatabase.getInstance(this);
 
+  String get supabaseRestUrl => rest.url;
+
+  String get supabaseKey => rest.headers['apiKey'] ?? '';
+
+
   /// Returns current user id (user has logged in )
   String? get uid => auth.currentUser?.id;
 
@@ -99,8 +104,9 @@ extension SupabaseExtensions on SupabaseClient {
       }
     }
 
+
     // Build the URL with query parameters
-    String url = "$supabaseUrl/rest/v1/$tableName?";
+    String url = "$supabaseRestUrl/$tableName?";
     if (columnNames.isNotEmpty) {
       url += "select=${Uri.encodeQueryComponent(columnNames.join(","))}";
     }
@@ -117,7 +123,6 @@ extension SupabaseExtensions on SupabaseClient {
 
     // GET https://rbwvyxnhamichywqgjqb.supabase.co/rest/v1/courses?code=eq.90023 ??
 
-    print("GET $url");
     // Create a GET request to the URL
     http.Response response = await http.get(Uri.parse(url), headers: {
       'apikey': supabaseKey,
@@ -187,7 +192,7 @@ extension SupabaseExtensions on SupabaseClient {
     });
 
     final url =
-        '$supabaseUrl/rest/v1/$table?${whereArgs.map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join('&')}';
+        '$supabaseRestUrl/$table?${whereArgs.map((arg) => '${arg['column']}=${arg['operator']}${arg['value']}').join('&')}';
     final response = await http.get(Uri.parse(url), headers: {
       'apikey': supabaseKey,
     });
@@ -222,7 +227,7 @@ extension SupabaseExtensions on SupabaseClient {
     }
 
     // Build the URL with query parameters
-    String url = "$supabaseUrl/rest/v1/$tableName";
+    String url = "$supabaseRestUrl/$tableName";
     String data = "";
     for (int i = 0; i < columnNames.length; i++) {
       if (i > 0) {
@@ -231,7 +236,6 @@ extension SupabaseExtensions on SupabaseClient {
       data += '${columnNames[i]}=${values[i]}';
     }
 
-    print("POST $url (body=$data)");
     // Create a POST request to the URL
     http.Response response =
         await http.post(Uri.parse(url), body: data, headers: {
@@ -251,7 +255,7 @@ extension SupabaseExtensions on SupabaseClient {
     String tableName = (statement.table.first as IdentifierToken).identifier;
 
     // Build the URL with query parameters
-    String url = "$supabaseUrl/rest/v1/$tableName";
+    String url = "$supabaseRestUrl/$tableName";
 
     print("DELETE $url");
 

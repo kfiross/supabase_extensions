@@ -1,3 +1,7 @@
+## [1.0.0]
+- Updated to latest dependencies
+- Updated to `supabase` v2 API
+
 ## [0.6.2]
 - Added `Supabase.jwt` to retrieve accessToken easily
 

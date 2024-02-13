@@ -29,15 +29,27 @@ class SupabaseDatabase {
     _streams['channel_$realtimeTopic'] = streamController;
 
     _incrementId++;
+
+    PostgresChangeEvent postgresChangeEvent = PostgresChangeEvent.all;
+    if(event != null){
+      switch(event){
+        case CrudEvent.insert:
+          postgresChangeEvent = PostgresChangeEvent.insert;
+        case CrudEvent.update:
+          postgresChangeEvent = PostgresChangeEvent.update;
+        case CrudEvent.delete:
+          postgresChangeEvent = PostgresChangeEvent.delete;
+      }
+    }
+
     var channel = supabaseClient.realtime.channel(realtimeTopic);
-    channel.on(
-        RealtimeListenTypes.postgresChanges,
-        ChannelFilter(
-            event: event?.name ?? '*',
-            schema: 'public',
-            table: table), (payload, [ref]) {
-      _onEventHandler(payload, streamController);
-    }).subscribe();
+    channel.onPostgresChanges(
+        event: postgresChangeEvent,
+        table: table,
+        schema: 'public',
+        callback: (payload) => _onEventHandler(payload, streamController),
+    ).subscribe();
+
 
     return streamController.stream;
   }
