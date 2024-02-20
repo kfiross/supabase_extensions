@@ -391,4 +391,11 @@ extension SupabaseExtensions on SupabaseClient {
 
   /// Closes all the open stream done with listening to table changes
   Future<void> closeAllStreams() => _database.closeAllStream();
+
+  /// Sends an email verification if user not verified yet
+  Future<void> sendEmailVerification(User user) async {
+    if (user.emailConfirmedAt == null) {
+      await auth.resend(type: OtpType.signup, email: user.email);
+    }
+  }
 }

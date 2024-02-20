@@ -59,6 +59,18 @@ Get the user's current session access token (if the user already logged in)
 String? accessToken = supabase.jwt;  /// instead supabase.auth.currentSession?.accessToken
 ```
 
+### Supabase.sendEmailVerification
+Get the user's current session access token (if the user already logged in)
+```dart
+// init Supabase Client..
+// final supabase = SupabaseClient('supabaseUrl', 'supabaseKey');
+
+User? user = supabase.auth.currentUser;
+supabase.sendEmailVerification(user);  /// instead supabas.auth.resend(type: OtpType.signup, email: user.email);
+```
+
+sendEmailVerification
+
 
 
 ### Supabase.on(String table, CrudEvent eventType)
