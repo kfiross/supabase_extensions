@@ -2,6 +2,7 @@ import 'package:supabase/supabase.dart';
 import 'package:supabase_extensions/src/base.dart';
 import 'package:supabase_extensions/src/query_results.dart';
 import 'package:dotenv/dotenv.dart';
+import 'package:supabase_extensions/src/supabase_auth_ext.dart';
 
 void main() async {
   // init Supabase Client..
@@ -12,7 +13,6 @@ void main() async {
   final supabase = SupabaseClient(SUPABASE_URL, SUPABASE_ANNON_KEY);
 
   // final userID = supabase.uid;
-
   var userId = "dcde0dba-f759-4700-84a2-5534aadaaf54";
   //var results = await supabase.sql("select * from user_constraints where user_id = '$u'");
   //print(results.rows ?? []);
@@ -20,6 +20,9 @@ void main() async {
   var results = await supabase
       .sql("select * from user_constraints where user_id = '$userId'");
   print(results.rows ?? []);
+
+
+  final providerName = supabase.auth.provider;
 
   // supabase.auth.onAuthStateChange.listen((authState) {
   //   if (authState.event == AuthChangeEvent.signedOut) {

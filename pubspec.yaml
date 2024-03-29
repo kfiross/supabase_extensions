@@ -1,6 +1,6 @@
 name: supabase_extensions
 description: Extensions for the Supabase client that allows faster develeopment
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/kfiross/supabase_extensions
 
 environment:

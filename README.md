@@ -96,6 +96,14 @@ supabase.removeAllChannels();
 supabase.closeAllStreams();   // ADD THIS TOO!
 ```
 
+### SupabaseAuth extensions
+
+#### auth.provider()
+Return the name of the provider the user is logged to ('apple', 'google'..)
+```dart
+String? providerName = supabase.auth.provider; /// instead supabase.auth.provider
+```
+
 ## Additional information
 
 Based heavily on the [Postgrest API](https://postgrest.org/en/stable/api.html) 
