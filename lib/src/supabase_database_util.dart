@@ -54,23 +54,26 @@ class SupabaseDatabase {
     return streamController.stream;
   }
 
-  void _onEventHandler(payload, StreamController streamController) {
-    String eventType = payload['eventType'];
+  void _onEventHandler(PostgresChangePayload payload, StreamController streamController) {
+    PostgresChangeEvent eventType = payload.eventType;
     switch (eventType) {
-      case "INSERT":
-        final newRecord = Map<String, dynamic>.from(payload['new']!);
+      case PostgresChangeEvent.insert:
+        final newRecord = payload.newRecord;
         streamController.add(newRecord);
         break;
 
-      case "UPDATE":
-        final newRecord = Map<String, dynamic>.from(payload['new']!);
+      case PostgresChangeEvent.update:
+        final newRecord = payload.newRecord;
         streamController.add(newRecord);
         break;
 
       // TODO: need to check
-      case "DELETE":
-        final newRecord = Map<String, dynamic>.from(payload['new']!);
+      case PostgresChangeEvent.delete:
+        final newRecord = payload.newRecord;
         streamController.add(newRecord);
+        break;
+
+      case PostgresChangeEvent.all:
         break;
     }
   }
