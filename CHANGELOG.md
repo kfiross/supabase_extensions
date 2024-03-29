@@ -1,3 +1,6 @@
+## [1.0.1]
+- Fixed bugs with `Supabase.on` migrated code in 1.0.0
+
 ## [1.0.0]
 - Updated to latest dependencies
 - Updated to `supabase` v2 API

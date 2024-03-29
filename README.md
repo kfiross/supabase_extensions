@@ -75,22 +75,25 @@ supabase.from('test').stream(primaryKey: ['id']).listen((event) {
 You can listen to only single event type (`'INSERT'`,`'UPDATE'` or `'DELETE'`)
 ```dart
 // any event in table 'test'
-supabase.on('test').listen((event) {
+supabase.on('table').listen((event) {
 print(event);
 });
 
 // only INSERT events in table 'test'
-supabase.on('test', CrudEvent.insert).listen((event) {
+supabase.on('table', CrudEvent.insert).listen((event) {
     print(event);
 });
 
-// shorter syntax for only INSERT
-supabasr.onInsert('test').listen((event) {
+// shorter syntax for only INSERT, DELETE
+supabase.onInsert('table').listen((event) {
+  print(event);
+});
+supabase.onDelete('table').listen((event) {
   print(event);
 });
 ```
 
-Remember to remove the channels and to close streams when you're done
+!! Remember to remove the channels and to close streams when you're done
 ```dart
 supabase.removeAllChannels();
 supabase.closeAllStreams();   // ADD THIS TOO!
